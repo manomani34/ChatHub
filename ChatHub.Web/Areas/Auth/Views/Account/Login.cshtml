@@ -1,0 +1,116 @@
+﻿@{
+    ViewData["Title"] = "ورود";
+}
+
+<div class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            C
+        </div>
+
+        <h1>
+            ورود به ChatHub
+        </h1>
+
+        <p class="auth-subtitle">
+            برای ادامه وارد حساب کاربری خود شوید.
+        </p>
+
+
+        <form asp-area="Auth"
+              asp-controller="Account"
+              asp-action="Login"
+              method="post"
+              class="auth-form">
+
+            @Html.AntiForgeryToken()
+
+
+            <div asp-validation-summary="ModelOnly"
+                 class="auth-validation">
+            </div>
+
+
+            <div class="auth-field">
+
+                <label for="userName">
+                    نام کاربری
+                </label>
+
+                <input type="text"
+                       id="userName"
+                       name="userName"
+                       autocomplete="username"
+                       placeholder="مثلاً ali"
+                       autofocus />
+
+                <span class="auth-field-error"
+                      data-valmsg-for="userName">
+                </span>
+
+            </div>
+
+
+            <div class="auth-field">
+
+                <label for="password">
+                    رمز عبور
+                </label>
+
+                <input type="password"
+                       id="password"
+                       name="password"
+                       autocomplete="current-password"
+                       placeholder="رمز عبور خود را وارد کنید" />
+
+            </div>
+
+
+            <div class="auth-options">
+
+                <label class="auth-remember">
+
+                    <input type="checkbox"
+                           name="rememberMe"
+                           value="true" />
+
+                    <span>
+                        مرا به خاطر بسپار
+                    </span>
+
+                </label>
+
+            </div>
+
+
+            <button type="submit"
+                    class="auth-submit">
+
+                ورود
+
+            </button>
+
+        </form>
+
+
+        <div class="auth-test-users">
+
+            <div>
+                کاربران تست:
+            </div>
+
+            <div>
+                ali / Ali@12345
+            </div>
+
+            <div>
+                reza / Reza@12345
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

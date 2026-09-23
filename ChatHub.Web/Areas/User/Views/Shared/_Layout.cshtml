@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - ChatHub</title>
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/chat.css"
+          asp-append-version="true" />
+</head>
+
+@await RenderSectionAsync("Scripts", required: false)
+<body>
+
+    <header class="ch-header">
+
+        <div class="ch-brand">
+            ChatHub
+        </div>
+
+        <nav class="ch-header-actions">
+
+            <button type="button"
+                    id="themeToggle"
+                    class="theme-toggle"
+                    title="تغییر حالت نمایش">
+                🌙
+            </button>
+
+            <a asp-area="User"
+               asp-controller="Home"
+               asp-action="Index">
+                خانه
+            </a>
+
+        </nav>
+
+    </header>
+
+    <main class="ch-main">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/theme.js"
+        asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/signalr-test.js"></script>
+    <script src="~/js/chat.js"></script>
+</body>
+</html>

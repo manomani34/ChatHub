@@ -1,0 +1,11 @@
+I:\ChatHub\ChatHub.Domain\bin\Debug\net10.0\ChatHub.Domain.deps.json
+I:\ChatHub\ChatHub.Domain\bin\Debug\net10.0\ChatHub.Domain.dll
+I:\ChatHub\ChatHub.Domain\bin\Debug\net10.0\ChatHub.Domain.pdb
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.GeneratedMSBuildEditorConfig.editorconfig
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.AssemblyInfoInputs.cache
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.AssemblyInfo.cs
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.csproj.CoreCompileInputs.cache
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.dll
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\refint\ChatHub.Domain.dll
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ChatHub.Domain.pdb
+I:\ChatHub\ChatHub.Domain\obj\Debug\net10.0\ref\ChatHub.Domain.dll

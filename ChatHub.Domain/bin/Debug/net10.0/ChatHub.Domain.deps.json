@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ChatHub.Domain/1.0.0": {
+        "runtime": {
+          "ChatHub.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ChatHub.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

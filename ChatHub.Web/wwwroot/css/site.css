@@ -179,3 +179,59 @@ body {
     .member-status.offline {
         background: #9ca3af;
     }
+/* =========================================================
+   Message Reply Reference
+   ========================================================= */
+
+.message-reply-reference {
+    margin: 6px 0 8px 0;
+    padding: 7px 10px;
+    border-right: 3px solid #4f8cff;
+    border-radius: 7px;
+    background: rgba(79, 140, 255, 0.07);
+    cursor: pointer;
+    overflow: hidden;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+    .message-reply-reference:hover {
+        background: rgba(79, 140, 255, 0.12);
+        border-right-color: #6ea0ff;
+    }
+
+.message-reply-reference-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #7fa7ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-reply-reference-text {
+    margin-top: 3px;
+    font-size: 11px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* پیام اصلی که Reply به آن اشاره کرده */
+.message-reply-highlight {
+    animation: replyMessageHighlight 1.2s ease;
+}
+
+@keyframes replyMessageHighlight {
+    0% {
+        box-shadow: 0 0 0 2px rgba(79, 140, 255, .0);
+    }
+
+    25% {
+        box-shadow: 0 0 0 2px rgba(79, 140, 255, .65);
+    }
+
+    100% {
+        box-shadow: 0 0 0 2px rgba(79, 140, 255, .0);
+    }
+}

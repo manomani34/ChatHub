@@ -149,6 +149,9 @@ namespace ChatHub.Infrastructure.Migrations
                     b.Property<bool>("IsEdited")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ParentMessageId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SenderId")
                         .HasColumnType("int");
 
@@ -157,6 +160,8 @@ namespace ChatHub.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentMessageId");
+
                     b.HasIndex("SenderId");
 
                     b.HasIndex("ChannelId", "CreatedAt");
@@ -164,6 +169,41 @@ namespace ChatHub.Infrastructure.Migrations
                     b.HasIndex("ConversationId", "CreatedAt");
 
                     b.ToTable("Messages", (string)null);
+                });
+
+            modelBuilder.Entity("ChatHub.Domain.Entities.MessageReaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Emoji")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("MessageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MessageId", "UserId", "Emoji")
+                        .IsUnique();
+
+                    b.ToTable("MessageReactions", (string)null);
                 });
 
             modelBuilder.Entity("ChatHub.Domain.Entities.User", b =>
@@ -219,6 +259,42 @@ namespace ChatHub.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("ChatHub.Domain.Entities.UserConversationReadState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LastReadMessageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("UserId", "ConversationId")
+                        .IsUnique();
+
+                    b.ToTable("UserConversationReadStates", (string)null);
                 });
 
             modelBuilder.Entity("ChatHub.Domain.Entities.Workspace", b =>
@@ -331,6 +407,11 @@ namespace ChatHub.Infrastructure.Migrations
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("ChatHub.Domain.Entities.Message", "ParentMessage")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentMessageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ChatHub.Domain.Entities.User", "Sender")
                         .WithMany("Messages")
                         .HasForeignKey("SenderId")
@@ -341,7 +422,47 @@ namespace ChatHub.Infrastructure.Migrations
 
                     b.Navigation("Conversation");
 
+                    b.Navigation("ParentMessage");
+
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("ChatHub.Domain.Entities.MessageReaction", b =>
+                {
+                    b.HasOne("ChatHub.Domain.Entities.Message", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatHub.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChatHub.Domain.Entities.UserConversationReadState", b =>
+                {
+                    b.HasOne("ChatHub.Domain.Entities.Conversation", "Conversation")
+                        .WithMany()
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatHub.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ChatHub.Domain.Entities.WorkspaceMember", b =>
@@ -373,6 +494,11 @@ namespace ChatHub.Infrastructure.Migrations
                     b.Navigation("Members");
 
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("ChatHub.Domain.Entities.Message", b =>
+                {
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("ChatHub.Domain.Entities.User", b =>

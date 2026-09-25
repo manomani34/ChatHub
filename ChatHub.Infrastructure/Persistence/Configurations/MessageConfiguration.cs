@@ -28,9 +28,14 @@ public class MessageConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.Conversation)
-            .WithMany(x => x.Messages)
-            .HasForeignKey(x => x.ConversationId)
-            .OnDelete(DeleteBehavior.Cascade);
+     .WithMany(x => x.Messages)
+     .HasForeignKey(x => x.ConversationId)
+     .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.ParentMessage)
+            .WithMany(x => x.Replies)
+            .HasForeignKey(x => x.ParentMessageId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new
         {

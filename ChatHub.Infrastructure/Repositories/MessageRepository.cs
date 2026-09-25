@@ -14,6 +14,36 @@ public class MessageRepository : IMessageRepository
         _db = db;
     }
 
+    public async Task<Message?> GetLastMessageByConversationIdAsync(
+    int conversationId)
+    {
+        if (conversationId <= 0)
+            return null;
+
+        return await _db.Messages
+            .AsNoTracking()
+            .Include(x => x.Sender)
+            .Where(x =>
+                x.ConversationId == conversationId &&
+                !x.IsDeleted)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Message>> GetByConversationIdAsync(
+    int conversationId)
+    {
+        if (conversationId <= 0)
+            return new List<Message>();
+
+        return await _db.Messages
+            .Include(x => x.Sender)
+            .Where(x =>
+                x.ConversationId == conversationId &&
+                !x.IsDeleted)
+            .OrderBy(x => x.CreatedAt)
+            .ToListAsync();
+    }
     public async Task<List<Message>> GetByChannelIdAsync(int channelId)
     {
         return await _db.Messages

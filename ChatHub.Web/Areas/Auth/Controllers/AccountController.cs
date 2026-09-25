@@ -1,8 +1,9 @@
-﻿using System.Security.Claims;
-using ChatHub.Web.Services;
+﻿using ChatHub.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ChatHub.Web.Areas.Auth.Controllers;
 
@@ -160,5 +161,28 @@ public class AccountController : Controller
     public IActionResult AccessDenied()
     {
         return View();
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> AccessToken()
+    {
+        var result =
+            await HttpContext.AuthenticateAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+        var token =
+            result.Properties
+                ?.GetTokenValue("access_token");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(new
+        {
+            accessToken = token
+        });
     }
 }

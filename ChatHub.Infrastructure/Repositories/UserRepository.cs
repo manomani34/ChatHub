@@ -26,4 +26,40 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(x =>
                 x.UserName == userName);
     }
+
+    public async Task<User?> GetByIdAsync(
+    int userId)
+    {
+        if (userId <= 0)
+            return null;
+
+        return await _db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x =>
+                x.Id == userId);
+    }
+
+    public async Task UpdateLastSeenAsync(
+    int userId,
+    DateTime lastSeenAt)
+    {
+        if (userId <= 0)
+            return;
+
+        var user =
+            await _db.Users
+                .FirstOrDefaultAsync(x =>
+                    x.Id == userId);
+
+        if (user is null)
+            return;
+
+        user.LastSeenAt =
+            lastSeenAt;
+
+        user.UpdatedAt =
+            DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+    }
 }

@@ -1,0 +1,45 @@
+﻿# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build
+[Bb]in/
+[Oo]bj/
+
+# Test
+TestResults/
+coverage/
+*.trx
+
+# JetBrains Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# ASP.NET Core
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# User secrets
+secrets.json
+
+# Local development settings
+appsettings.Development.json

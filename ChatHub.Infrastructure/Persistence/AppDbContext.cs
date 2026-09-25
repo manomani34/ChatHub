@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<MessageReaction> MessageReactions { get; set; }
     public DbSet<ConversationMember> ConversationMembers => Set<ConversationMember>();
 
     public DbSet<User> Users => Set<User>();
@@ -23,6 +24,8 @@ public class AppDbContext : DbContext
     public DbSet<Conversation> Conversations => Set<Conversation>();
 
     public DbSet<Message> Messages => Set<Message>();
+
+    public DbSet<UserConversationReadState> UserConversationReadStates => Set<UserConversationReadState>();    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

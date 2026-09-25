@@ -13,6 +13,7 @@ public class MessageDto
     public int? ChannelId { get; set; }
 
     public int? ConversationId { get; set; }
+    public int? ParentMessageId { get; set; }
 
     public string Content { get; set; } = string.Empty;
 

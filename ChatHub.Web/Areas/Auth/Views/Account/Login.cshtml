@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "ورود";
+    ViewData["Title"] = "ورود به ChatHub";
 }
 
 <div class="auth-page">
@@ -45,10 +45,6 @@
                        autocomplete="username"
                        placeholder="مثلاً ali"
                        autofocus />
-
-                <span class="auth-field-error"
-                      data-valmsg-for="userName">
-                </span>
 
             </div>
 
@@ -97,16 +93,18 @@
 
         <div class="auth-test-users">
 
-            <div>
-                کاربران تست:
+            <div class="auth-test-title">
+                کاربران تست
             </div>
 
-            <div>
-                ali / Ali@12345
+            <div class="auth-test-user">
+                <span>ali</span>
+                <span>Ali@12345</span>
             </div>
 
-            <div>
-                reza / Reza@12345
+            <div class="auth-test-user">
+                <span>reza</span>
+                <span>Reza@12345</span>
             </div>
 
         </div>

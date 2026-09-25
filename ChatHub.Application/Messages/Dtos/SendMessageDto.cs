@@ -2,9 +2,9 @@
 
 public class SendMessageDto
 {
-    public int SenderId { get; set; }
-
     public int ChannelId { get; set; }
+
+    public int? ParentMessageId { get; set; }
 
     public string Content { get; set; } = string.Empty;
 }

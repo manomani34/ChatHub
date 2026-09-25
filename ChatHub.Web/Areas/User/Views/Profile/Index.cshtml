@@ -1,0 +1,100 @@
+﻿@model ChatHub.Web.Areas.User.Controllers.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "پروفایل کاربر";
+
+    var initial =
+        string.IsNullOrWhiteSpace(Model.DisplayName)
+            ? "?"
+            : Model.DisplayName.Substring(0, 1);
+}
+
+<div class="profile-page">
+
+    <div class="profile-card">
+
+        <div class="profile-avatar">
+            @initial
+        </div>
+
+        <h1 class="profile-display-name">
+            @Model.DisplayName
+        </h1>
+
+        <div class="profile-username">
+            @@@Model.UserName
+        </div>
+
+
+        <div class="profile-info">
+
+            <div class="profile-info-row">
+
+                <span class="profile-info-label">
+                    نام نمایشی
+                </span>
+
+                <span class="profile-info-value">
+                    @Model.DisplayName
+                </span>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span class="profile-info-label">
+                    نام کاربری
+                </span>
+
+                <span class="profile-info-value">
+                    @Model.UserName
+                </span>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span class="profile-info-label">
+                    ایمیل
+                </span>
+
+                <span class="profile-info-value">
+                    @(string.IsNullOrWhiteSpace(Model.Email)
+                        ? "ثبت نشده"
+                        : Model.Email)
+                </span>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span class="profile-info-label">
+                    شناسه کاربر
+                </span>
+
+                <span class="profile-info-value">
+                    @Model.UserId
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="profile-actions">
+
+            <a asp-area="User"
+               asp-controller="Home"
+               asp-action="Index"
+               class="profile-back-button">
+                بازگشت به Chat
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

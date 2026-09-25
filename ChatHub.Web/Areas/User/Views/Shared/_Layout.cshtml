@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] - ChatHub</title>
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        @ViewData["Title"] - ChatHub
+    </title>
+
 
     <link rel="stylesheet"
           href="~/css/site.css"
@@ -13,9 +20,10 @@
     <link rel="stylesheet"
           href="~/css/chat.css"
           asp-append-version="true" />
+
 </head>
 
-@await RenderSectionAsync("Scripts", required: false)
+
 <body>
 
     <header class="ch-header">
@@ -24,36 +32,102 @@
             ChatHub
         </div>
 
+
         <nav class="ch-header-actions">
 
+            <!-- Theme -->
             <button type="button"
                     id="themeToggle"
-                    class="theme-toggle"
+                    class="header-action-button theme-toggle"
                     title="تغییر حالت نمایش">
-                🌙
+
+                <span class="header-action-icon">
+                    🌙
+                </span>
+
             </button>
 
+
+            <!-- Home -->
             <a asp-area="User"
                asp-controller="Home"
-               asp-action="Index">
-                خانه
+               asp-action="Index"
+               class="header-action-button home-action">
+
+                <span class="header-action-icon">
+                    ⌂
+                </span>
+
+                <span class="header-action-text">
+                    خانه
+                </span>
+
             </a>
+
+
+            <!-- Logout -->
+            <form asp-area="Auth"
+                  asp-controller="Account"
+                  asp-action="Logout"
+                  method="post"
+                  class="logout-form">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="header-action-button logout-action"
+                        title="خروج">
+
+                    <span class="header-action-icon">
+                        ↪
+                    </span>
+
+                    <span class="header-action-text">
+                        خروج
+                    </span>
+
+                </button>
+
+            </form>
 
         </nav>
 
     </header>
 
+
     <main class="ch-main">
+
         @RenderBody()
+
     </main>
 
+
+    <!-- Theme -->
     <script src="~/js/theme.js"
-        asp-append-version="true"></script>
+            asp-append-version="true">
+    </script>
 
-    @await RenderSectionAsync("Scripts", required: false)
 
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
-    <script src="~/js/signalr-test.js"></script>
-    <script src="~/js/chat.js"></script>
+    <!-- Optional page scripts -->
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false)
+
+
+    <!-- SignalR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js">
+    </script>
+
+
+    <script src="~/js/signalr-test.js"
+            asp-append-version="true">
+    </script>
+
+
+    <script src="~/js/chat.js"
+            asp-append-version="true">
+    </script>
+
 </body>
+
 </html>

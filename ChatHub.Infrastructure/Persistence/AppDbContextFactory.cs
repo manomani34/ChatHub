@@ -9,8 +9,10 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
+        //optionsBuilder.UseSqlServer(
+        //    "Server=.;Database=ChatHubDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True");
         optionsBuilder.UseSqlServer(
-            "Server=.;Database=ChatHubDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True");
+    "Server=(localdb)\\MSSQLLocalDB;Database=ChatHubDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True");
 
         return new AppDbContext(optionsBuilder.Options);
     }

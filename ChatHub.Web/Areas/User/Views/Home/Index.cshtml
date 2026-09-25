@@ -1,11 +1,33 @@
 ﻿@model ChatHub.Web.Areas.User.Controllers.ChatHubHomeViewModel
+
 @{
     ViewData["Title"] = "ChatHub";
+
+    var currentUserId =
+        User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier
+        )?.Value;
+
+    var currentUserName =
+        User.Identity?.Name ?? "کاربر";
+
+    var currentDisplayName =
+        User.FindFirst(
+            System.Security.Claims.ClaimTypes.GivenName
+        )?.Value
+        ?? currentUserName;
+
+    var currentUserInitial =
+        string.IsNullOrWhiteSpace(currentDisplayName)
+            ? "?"
+            : currentDisplayName.Substring(0, 1);
 }
 
 <div class="chat-shell">
 
-    <!-- Workspace rail -->
+    <!-- =====================================================
+         Workspace Rail
+         ===================================================== -->
 
     <aside class="workspace-rail">
 
@@ -32,7 +54,9 @@
     </aside>
 
 
-    <!-- Rooms -->
+    <!-- =====================================================
+         Room Sidebar
+         ===================================================== -->
 
     <aside class="room-sidebar">
 
@@ -51,144 +75,242 @@
 
         <div class="room-content">
 
+            <!-- Channels -->
+
             <section class="room-section">
 
                 <div class="room-section-title">
-                    کانال‌ها
+
+                    <span>
+                        پیام‌های مستقیم
+                    </span>
 
                     <span class="room-add">
                         +
                     </span>
+
                 </div>
 
-                <div class="channel-list">
 
-                    @foreach (var channel in Model.Channels)
+                @if (Model.DirectConversations.Any())
+                {
+                    @foreach (var conversation in Model.DirectConversations)
                     {
+                        var isActive =
+                            Model.IsDirectMessage &&
+                            Model.SelectedConversationId ==
+                            conversation.ConversationId;
+
+                        var initial =
+                            string.IsNullOrWhiteSpace(
+                                conversation.OtherDisplayName)
+                                ? "?"
+                                : conversation.OtherDisplayName
+                                    .Substring(0, 1);
+
+                        var lastMessage =
+                            string.IsNullOrWhiteSpace(
+                                conversation.LastMessageContent)
+                                ? ""
+                                : conversation.LastMessageContent;
+
+                        var lastMessageTime =
+                            conversation.LastMessageAt.HasValue
+                                ? conversation.LastMessageAt.Value
+                                    .ToLocalTime()
+                                    .ToString("HH:mm")
+                                : "";
+
                         <a asp-area="User"
                            asp-controller="Home"
                            asp-action="Index"
-                           asp-route-channelId="@channel.Id"
-                           class="room-item channel-item @(Model.SelectedChannel?.Id == channel.Id ? "active" : "")">
+                           asp-route-userName="@conversation.OtherUserName"
+                           class="room-item direct-room-item @(isActive ? "active" : "")"
+                           data-user-name="@conversation.OtherUserName"
+                           data-conversation-id="@conversation.ConversationId">
 
-                            <span class="room-icon">#</span>
-
-                            <span class="room-name">
-                                @channel.Name
+                            <span class="room-icon">
+                                @initial
                             </span>
 
-                            @if (Model.SelectedChannel?.Id == channel.Id)
+                            <span class="direct-room-content">
+
+                                <span class="direct-room-top">
+
+                                    <span class="room-name">
+                                        @conversation.OtherDisplayName
+                                    </span>
+
+                                    @if (!string.IsNullOrWhiteSpace(lastMessageTime))
+                                    {
+                                        <span class="direct-room-time">
+                                            @lastMessageTime
+                                        </span>
+                                    }
+
+                                </span>
+
+                                @if (!string.IsNullOrWhiteSpace(lastMessage))
+                                {
+                                    <span class="direct-room-preview">
+                                        @lastMessage
+                                    </span>
+                                }
+
+                            </span>
+
+                            @if (conversation.UnreadCount > 0)
                             {
-                                <span class="channel-active-indicator"></span>
+                                <span class="unread-badge">
+                                    @conversation.UnreadCount
+                                </span>
                             }
 
                         </a>
                     }
-
-                </div>
-
-            </section>
-
-
-            <section class="room-section">
-
-                <div class="room-section-title">
-
-                    پیام‌های مستقیم
-
-                    <span class="room-add">
-                        +
-                    </span>
-
-                </div>
-
-                <div class="room-item">
-
-                    <span class="room-icon">
-                        ●
-                    </span>
-
-                    علی
-
-                </div>
-
-                <div class="room-item">
-
-                    <span class="room-icon">
-                        ●
-                    </span>
-
-                    رضا
-
-                </div>
-
-                <div class="room-item">
-
-                    <span class="room-icon">
-                        ●
-                    </span>
-
-                    سارا
-
-                </div>
+                }
+                else
+                {
+                    <div class="direct-empty">
+                        هنوز گفتگوی مستقیمی ندارید.
+                    </div>
+                }
 
             </section>
+
+
+            <!-- Direct Messages -->            
 
         </div>
 
     </aside>
 
 
-    <!-- Main Chat -->
+    <!-- =====================================================
+         Main Chat
+         ===================================================== -->
 
     <main class="chat-main">
 
+        <!-- Chat Header -->
+
         <header class="chat-topbar">
 
-            <div class="chat-room-title">
+            <div class="chat-room-info">
 
-                <span>#</span>
+                @if (Model.IsDirectMessage &&
+                     Model.DirectMessageUser is not null)
+                {
+                    <div class="chat-room-title">
 
-                <span>
-                    @(Model.SelectedChannel?.Name ?? "general")
-                </span>
+                        <span>
+                            💬
+                        </span>
+
+                        <span>
+                            @Model.DirectMessageUser.DisplayName
+                        </span>
+
+                    </div>
+
+                    <div class="chat-room-description">
+                        پیام مستقیم
+                    </div>
+
+                    <div class="chat-room-presence"
+                         id="chatRoomPresence"
+                         aria-live="polite">
+                    </div>
+                }
+                else
+                {
+                    <div class="chat-room-title">
+
+                        <span>
+                            #
+                        </span>
+
+                        <span>
+                            @(Model.SelectedChannel?.Name ?? "general")
+                        </span>
+
+                    </div>
+
+                    <div class="chat-room-description">
+
+                        @(Model.SelectedChannel?.Description
+                            ?? "گفتگوی عمومی تیم")
+
+                    </div>
+                }
 
             </div>
 
-            <div class="chat-room-description">
 
-                @(Model.SelectedChannel?.Description
-                    ?? "گفتگوی عمومی تیم")
+            <!-- Current User -->
 
-            </div>
+            <a asp-area="User"
+               asp-controller="Profile"
+               asp-action="Index"
+               class="chat-current-user"
+               title="مشاهده پروفایل">
+
+                <div class="chat-current-user-avatar">
+                    @currentUserInitial
+                </div>
+
+                <div class="chat-current-user-info">
+
+                    <span class="chat-current-user-label">
+                        کاربر جاری
+                    </span>
+
+                    <span class="chat-current-user-name">
+                        @currentDisplayName
+                    </span>
+
+                </div>
+
+            </a>
 
         </header>
 
 
-        <!-- Messages -->
+        <!-- =================================================
+             Messages
+             ================================================= -->
 
         <section class="chat-messages"
                  id="chatMessages"
-                 data-channel-id="@Model.SelectedChannel?.Id">
+                 data-channel-id="@Model.SelectedChannel?.Id"
+                 data-conversation-id="@Model.SelectedConversationId"
+                 data-is-direct="@Model.IsDirectMessage.ToString().ToLowerInvariant()"
+                 data-current-user-id="@currentUserId">
 
             @if (Model.Messages.Any())
             {
                 @foreach (var message in Model.Messages)
                 {
-                    <article class="message"
-                             data-message-id="@message.Id">
+                    <article class="message @(message.SenderId.ToString() == currentUserId ? "own-message" : "")"
+                             data-message-id="@message.Id"
+                             data-sender-id="@message.SenderId"
+                             data-channel-id="@message.ChannelId"
+                             data-conversation-id="@message.ConversationId"
+                             data-parent-message-id="@message.ParentMessageId">
 
                         <div class="message-avatar">
 
-                            @(string.IsNullOrWhiteSpace(message.SenderName)
-                                ? "?"
-                                : message.SenderName.Substring(0, 1))
+                            @(
+                                string.IsNullOrWhiteSpace(message.SenderName)
+                                    ? "?"
+                                    : message.SenderName.Substring(0, 1)
+                            )
 
                         </div>
 
+
                         <div class="message-body">
 
-                          
                             <div class="message-meta">
 
                                 <span class="message-author">
@@ -207,36 +329,60 @@
                                 }
 
                             </div>
-                          
 
+                            <div class="message-text">@message.Content</div>
 
-                            <div class="message-text">
-                                @message.Content
+                            <div class="message-reactions"
+                                 data-message-id="@message.Id">
                             </div>
 
                         </div>
-                        @if (message.SenderId == 1)
+
+
+                        @if (message.SenderId.ToString() == currentUserId)
                         {
                             <div class="message-actions">
+
                                 <button type="button"
                                         class="message-actions-button"
                                         aria-label="عملیات پیام">
                                     ⋮
                                 </button>
 
+
                                 <div class="message-actions-menu">
-                                    <button type="button"
-                                            class="message-action-edit">
-                                        <span>✏️</span>
-                                        <span>ویرایش</span>
-                                    </button>
 
                                     <button type="button"
-                                            class="message-action-delete">
-                                        <span>🗑️</span>
-                                        <span>حذف</span>
+                                            class="message-action-edit"
+                                            data-message-id="@message.Id">
+
+                                        <span>
+                                            ✏️
+                                        </span>
+
+                                        <span>
+                                            ویرایش
+                                        </span>
+
                                     </button>
+
+
+                                    <button type="button"
+                                            class="message-action-delete"
+                                            data-message-id="@message.Id">
+
+                                        <span>
+                                            🗑️
+                                        </span>
+
+                                        <span>
+                                            حذف
+                                        </span>
+
+                                    </button>
+
                                 </div>
+
                             </div>
                         }
 
@@ -247,7 +393,18 @@
             {
                 <div class="empty-chat">
 
-                    هنوز پیامی در این کانال وجود ندارد.
+                    @if (Model.IsDirectMessage)
+                    {
+                        <span>
+                            هنوز پیامی در این گفتگوی خصوصی وجود ندارد.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            هنوز پیامی در این کانال وجود ندارد.
+                        </span>
+                    }
 
                 </div>
             }
@@ -255,11 +412,83 @@
         </section>
 
 
-        <!-- Composer -->
+        <!-- =================================================
+     Composer
+     ================================================= -->
 
         <div class="composer-wrapper">
 
-            @if (Model.SelectedChannel is not null)
+            <!-- Reply Preview -->
+
+            <div id="replyPreview"
+                 class="reply-preview"
+                 style="display: none;">
+
+                <div class="reply-preview-content">
+
+                    <div class="reply-preview-title">
+                        در پاسخ به
+                        <span id="replyPreviewAuthor"></span>
+                    </div>
+
+                    <div id="replyPreviewText"
+                         class="reply-preview-text">
+                    </div>
+
+                </div>
+
+                <button type="button"
+                        id="cancelReplyButton"
+                        class="reply-preview-cancel"
+                        aria-label="لغو پاسخ">
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- Typing Indicator -->
+
+            <div class="typing-indicator"
+                 id="typingIndicator"
+                 aria-live="polite"
+                 style="display: none;">
+            </div>
+
+
+            <!-- Composer Form -->
+            @if (Model.IsDirectMessage)
+            {
+                <form asp-area="User"
+                      asp-controller="Home"
+                      asp-action="SendDirectMessage"
+                      method="post"
+                      class="composer">
+
+                    <input type="hidden"
+                           name="conversationId"
+                           value="@Model.SelectedConversationId" />
+
+                    <input type="hidden"
+                           name="userName"
+                           value="@Model.DirectMessageUser?.UserName" />
+
+                    <input type="hidden"
+                           name="parentMessageId"
+                           value="" />
+
+                    <textarea name="content"
+                              rows="1"
+                              autocomplete="off"
+                              placeholder="پیام خود را بنویسید..."></textarea>
+
+                    <button type="submit">
+                        ➤
+                    </button>
+
+                </form>
+            }
+            else if (Model.SelectedChannel is not null)
             {
                 <form asp-area="User"
                       asp-controller="Home"
@@ -271,10 +500,14 @@
                            name="channelId"
                            value="@Model.SelectedChannel.Id" />
 
+                    <input type="hidden"
+                           name="parentMessageId"
+                           value="" />
+
                     <textarea name="content"
                               rows="1"
                               autocomplete="off"
-                              placeholder="پیام خود را در #@(Model.SelectedChannel.Name) بنویسید..."></textarea>
+                              placeholder="پیام خود را در #@Model.SelectedChannel.Name بنویسید..."></textarea>
 
                     <button type="submit">
                         ➤
@@ -288,84 +521,56 @@
     </main>
 
 
-    <!-- Members -->
+    <!-- =====================================================
+         Members Sidebar
+         ===================================================== -->
 
     <aside class="members-sidebar">
 
         <div class="members-title">
-            اعضای کانال — 4
+            اعضای کانال — @Model.Members.Count
         </div>
 
 
-        <div class="member">
+        @foreach (var member in Model.Members)
+        {
+            var initial =
+                string.IsNullOrWhiteSpace(member.DisplayName)
+                    ? "?"
+                    : member.DisplayName.Substring(0, 1);
 
-            <div class="member-avatar">
+            <a asp-area="User"
+               asp-controller="Home"
+               asp-action="Index"
+               asp-route-userName="@member.UserName"
+               class="member direct-member"
+               data-user-name="@member.UserName"
+               data-user-id="@member.UserId"
+               title="پیام مستقیم با @member.DisplayName">
 
-                ع
+                <div class="member-avatar">
 
-                <span class="member-status"></span>
+                    @if (!string.IsNullOrWhiteSpace(member.AvatarUrl))
+                    {
+                        <img src="@member.AvatarUrl"
+                             alt="@member.DisplayName" />
+                    }
+                    else
+                    {
+                        @initial
+                    }
 
-            </div>
+                    <span class="member-status"></span>
 
-            <span class="member-name">
-                علی
-            </span>
+                </div>
 
-        </div>
+                <span class="member-name">
+                    @member.DisplayName
+                </span>
 
-
-        <div class="member">
-
-            <div class="member-avatar">
-
-                ر
-
-                <span class="member-status"></span>
-
-            </div>
-
-            <span class="member-name">
-                رضا
-            </span>
-
-        </div>
-
-
-        <div class="member">
-
-            <div class="member-avatar">
-
-                س
-
-                <span class="member-status"></span>
-
-            </div>
-
-            <span class="member-name">
-                سارا
-
-            </span>
-
-        </div>
-
-
-        <div class="member">
-
-            <div class="member-avatar">
-
-                م
-
-                <span class="member-status offline"></span>
-
-            </div>
-
-            <span class="member-name">
-                محمد
-            </span>
-
-        </div>
+            </a>
+        }
 
     </aside>
 
 </div>
-

@@ -13,12 +13,15 @@ public class Message : BaseEntity
     public string Content { get; set; } = string.Empty;
 
     public bool IsEdited { get; set; }
-
     public bool IsDeleted { get; set; }
 
+    public int? ParentMessageId { get; set; }
+
     public User Sender { get; set; } = null!;
-
     public Channel? Channel { get; set; }
-
     public Conversation? Conversation { get; set; }
+
+    public Message? ParentMessage { get; set; }
+    public ICollection<Message> Replies { get; set; }
+        = new List<Message>();
 }

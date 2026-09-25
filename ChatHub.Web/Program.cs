@@ -12,6 +12,20 @@ builder.Services.AddControllersWithViews();
 
 
 /* =========================================================
+   HttpContext
+   ========================================================= */
+
+builder.Services.AddHttpContextAccessor();
+
+
+/* =========================================================
+   Token Handler
+   ========================================================= */
+
+builder.Services.AddTransient<UserTokenHandler>();
+
+
+/* =========================================================
    API Client
    ========================================================= */
 
@@ -19,7 +33,8 @@ builder.Services.AddHttpClient<ChatHubApiClient>(client =>
 {
     client.BaseAddress =
         new Uri("http://localhost:5070/");
-});
+})
+.AddHttpMessageHandler<UserTokenHandler>();
 
 
 /* =========================================================
@@ -31,7 +46,8 @@ builder.Services
         CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Auth/Account/Login";
+        options.LoginPath =
+            "/Auth/Account/Login";
 
         options.AccessDeniedPath =
             "/Auth/Account/AccessDenied";
@@ -39,7 +55,8 @@ builder.Services
         options.ExpireTimeSpan =
             TimeSpan.FromHours(8);
 
-        options.SlidingExpiration = true;
+        options.SlidingExpiration =
+            true;
     });
 
 
@@ -76,10 +93,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
-/*
- * Authentication MUST come before Authorization.
- */
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -94,7 +107,6 @@ app.MapControllerRoute(
     pattern:
         "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-
 app.MapControllerRoute(
     name: "default",
     pattern:
@@ -102,4 +114,3 @@ app.MapControllerRoute(
 
 
 app.Run();
-

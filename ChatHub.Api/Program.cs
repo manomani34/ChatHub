@@ -1,26 +1,21 @@
-using System.Text;
-
 using ChatHub.Api.Hubs;
 using ChatHub.Api.Security;
-
+using ChatHub.Api.Services;
 using ChatHub.Application.Authentication;
-using ChatHub.Application.Common.Interfaces;
-using ChatHub.Application.Workspaces;
 using ChatHub.Application.Channels;
+using ChatHub.Application.Common.Interfaces;
+using ChatHub.Application.Conversations;
 using ChatHub.Application.Messages;
-
+using ChatHub.Application.Workspaces;
 using ChatHub.Domain.Entities;
-
 using ChatHub.Infrastructure.Persistence;
 using ChatHub.Infrastructure.Persistence.Seed;
 using ChatHub.Infrastructure.Repositories;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 /* =========================================================
@@ -104,6 +99,10 @@ builder.Services.AddScoped<
     IChannelService,
     ChannelService>();
 
+builder.Services.AddScoped<
+    IDirectMessageService,
+    DirectMessageService>();
+
 
 builder.Services.AddScoped<
     IMessageRepository,
@@ -123,6 +122,29 @@ builder.Services.AddScoped<
     IAuthenticationService,
     AuthenticationService>();
 
+builder.Services.AddScoped<
+    IWorkspaceMembershipRepository,
+    WorkspaceMembershipRepository>();
+
+builder.Services.AddScoped<
+    IConversationRepository,
+    ConversationRepository>();
+
+builder.Services.AddScoped<
+    IConversationReadStateRepository,
+    ConversationReadStateRepository>();
+
+builder.Services.AddSingleton<
+    UserPresenceTracker>();
+
+builder.Services.AddScoped<
+    IMessageReactionRepository,
+    MessageReactionRepository>();
+
+builder.Services.AddScoped<
+    IMessageReactionService,
+    MessageReactionService>();
+
 
 /* =========================================================
    Password Hashing
@@ -131,6 +153,7 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IPasswordHasher<User>,
     PasswordHasher<User>>();
+
 
 
 /* =========================================================

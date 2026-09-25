@@ -13,6 +13,41 @@ public class ChatHubApiClient
         _httpClient = httpClient;
     }
 
+    public async Task<List<WorkspaceMemberDto>> GetWorkspaceMembersAsync(
+     int workspaceId)
+    {
+        if (workspaceId <= 0)
+            return new List<WorkspaceMemberDto>();
+
+        var response =
+            await _httpClient.GetAsync(
+                $"api/user/workspaces/{workspaceId}/members");
+
+        if (!response.IsSuccessStatusCode)
+            return new List<WorkspaceMemberDto>();
+
+        return await response.Content
+            .ReadFromJsonAsync<List<WorkspaceMemberDto>>()
+            ?? new List<WorkspaceMemberDto>();
+    }
+
+    public async Task<UserProfileResponse?> GetUserProfileAsync(
+    string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName))
+            return null;
+
+        var response =
+            await _httpClient.GetAsync(
+                $"api/user/profile?userName={Uri.EscapeDataString(userName)}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content
+            .ReadFromJsonAsync<UserProfileResponse>();
+    }
+
     public async Task<List<WorkspaceDto>> GetWorkspacesAsync()
     {
         var result = await _httpClient
@@ -41,25 +76,26 @@ public class ChatHubApiClient
     }
 
     public async Task<MessageDto?> SendMessageAsync(
-    int senderId,
     int channelId,
-    string content)
+    string content,
+    int? parentMessageId = null)
     {
         var request = new SendMessageRequest
         {
-            SenderId = senderId,
             ChannelId = channelId,
+            ParentMessageId = parentMessageId,
             Content = content
         };
 
-        var response = await _httpClient
-            .PostAsJsonAsync(
+        var response =
+            await _httpClient.PostAsJsonAsync(
                 "api/user/messages",
                 request);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync();
+            var error =
+                await response.Content.ReadAsStringAsync();
 
             throw new HttpRequestException(
                 $"Send message failed. " +
@@ -74,12 +110,10 @@ public class ChatHubApiClient
 
     public async Task<MessageDto?> EditMessageAsync(
     int messageId,
-    int userId,
     string content)
     {
         var request = new
         {
-            UserId = userId,
             Content = content
         };
 
@@ -105,12 +139,11 @@ public class ChatHubApiClient
     }
 
     public async Task<MessageDto?> DeleteMessageAsync(
-    int messageId,
-    int userId)
+    int messageId)
     {
         var response =
             await _httpClient.DeleteAsync(
-                $"api/user/messages/{messageId}?userId={userId}");
+                $"api/user/messages/{messageId}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -150,6 +183,111 @@ public class ChatHubApiClient
         return await response.Content
             .ReadFromJsonAsync<LoginResponse>();
     }
+
+    public async Task<DirectConversationResponse?> GetOrCreateDirectConversationAsync(
+    string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName))
+            return null;
+
+        var response =
+            await _httpClient.GetAsync(
+                $"api/user/conversations/direct/open?userName={Uri.EscapeDataString(userName)}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content
+            .ReadFromJsonAsync<DirectConversationResponse>();
+    }
+
+
+    public async Task<List<MessageDto>> GetConversationMessagesAsync(
+        int conversationId)
+    {
+        if (conversationId <= 0)
+            return new List<MessageDto>();
+
+        var response =
+            await _httpClient.GetAsync(
+                $"api/user/messages/conversation/{conversationId}");
+
+        if (!response.IsSuccessStatusCode)
+            return new List<MessageDto>();
+
+        return await response.Content
+            .ReadFromJsonAsync<List<MessageDto>>()
+            ?? new List<MessageDto>();
+    }
+
+    public async Task<MessageDto?> SendDirectMessageAsync(
+     int conversationId,
+     string content,
+     int? parentMessageId = null)
+    {
+        if (conversationId <= 0)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(content))
+            return null;
+
+        var request = new
+        {
+            conversationId,
+            parentMessageId,
+            content
+        };
+
+        var response =
+            await _httpClient.PostAsJsonAsync(
+                "api/user/messages/conversation",
+                request);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content
+            .ReadFromJsonAsync<MessageDto>();
+    }
+
+    public async Task<List<DirectConversationResponse>>
+    GetDirectConversationsAsync()
+    {
+        var response =
+            await _httpClient.GetAsync(
+                "api/user/conversations/direct");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return new List<DirectConversationResponse>();
+        }
+
+        return await response.Content
+            .ReadFromJsonAsync<List<DirectConversationResponse>>()
+            ?? new List<DirectConversationResponse>();
+    }
+    
+}
+
+public class DirectConversationResponse
+{
+    public int ConversationId { get; set; }
+
+    public int OtherUserId { get; set; }
+
+    public string OtherUserName { get; set; }
+        = string.Empty;
+
+    public string OtherDisplayName { get; set; }
+        = string.Empty;
+
+    public string? OtherAvatarUrl { get; set; }
+
+    public int UnreadCount { get; set; }
+
+    public string? LastMessageContent { get; set; }
+
+    public DateTime? LastMessageAt { get; set; }
 }
 
 public class WorkspaceDto
@@ -182,6 +320,7 @@ public class MessageDto
     public int? ChannelId { get; set; }
 
     public int? ConversationId { get; set; }
+    public int? ParentMessageId { get; set; }
 
     public string Content { get; set; } = string.Empty;
 
@@ -197,8 +336,40 @@ public class MessageDto
 public class SendMessageRequest
 {
     public int SenderId { get; set; }
-
     public int ChannelId { get; set; }
-
+    public int? ParentMessageId { get; set; }
     public string Content { get; set; } = string.Empty;
+}
+
+public class UserProfileResponse
+{
+    public int UserId { get; set; }
+
+    public string UserName { get; set; } =
+        string.Empty;
+
+    public string DisplayName { get; set; } =
+        string.Empty;
+
+    public string Email { get; set; } =
+        string.Empty;
+}
+public class WorkspaceMemberDto
+{
+    public int UserId { get; set; }
+
+    public string UserName { get; set; }
+        = string.Empty;
+
+    public string DisplayName { get; set; }
+        = string.Empty;
+
+    public string Email { get; set; }
+        = string.Empty;
+
+    public string? AvatarUrl { get; set; }
+
+    public DateTime? LastSeenAt { get; set; }
+
+    public bool IsActive { get; set; }
 }

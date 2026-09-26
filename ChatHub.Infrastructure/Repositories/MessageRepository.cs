@@ -14,6 +14,48 @@ public class MessageRepository : IMessageRepository
         _db = db;
     }
 
+    public async Task<List<Message>> SearchAsync(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return new List<Message>();
+
+        if (take <= 0)
+            take = 50;
+
+        if (take > 100)
+            take = 100;
+
+        query = query.Trim();
+
+        var messages = _db.Messages
+            .AsNoTracking()
+            .Include(x => x.Sender)
+            .Where(x =>
+                !x.IsDeleted &&
+                EF.Functions.Like(x.Content, $"%{query}%"));
+
+        if (channelId.HasValue)
+        {
+            messages = messages.Where(x =>
+                x.ChannelId == channelId.Value);
+        }
+
+        if (conversationId.HasValue)
+        {
+            messages = messages.Where(x =>
+                x.ConversationId == conversationId.Value);
+        }
+
+        return await messages
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(take)
+            .ToListAsync();
+    }
+
     public async Task<Message?> GetLastMessageByConversationIdAsync(
     int conversationId)
     {

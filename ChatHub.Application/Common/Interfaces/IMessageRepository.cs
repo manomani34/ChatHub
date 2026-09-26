@@ -13,4 +13,10 @@ public interface IMessageRepository
     int conversationId);
     Task<Message?> GetLastMessageByConversationIdAsync(
     int conversationId);
+
+    Task<List<Message>> SearchAsync(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50);
 }

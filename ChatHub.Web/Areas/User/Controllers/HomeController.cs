@@ -199,6 +199,34 @@ public class HomeController : Controller
             new { userName });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SearchMessages(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Search query is required.");
+
+        if (channelId.HasValue && conversationId.HasValue)
+            return BadRequest(
+                "Specify either channelId or conversationId, not both.");
+
+        if (!channelId.HasValue && !conversationId.HasValue)
+            return BadRequest(
+                "Specify a channelId or conversationId.");
+
+        var messages =
+            await _apiClient.SearchMessagesAsync(
+                query,
+                channelId,
+                conversationId,
+                take);
+
+        return Ok(messages);
+    }
+
     [HttpPost]
     public async Task<IActionResult> EditMessage(
      int messageId,

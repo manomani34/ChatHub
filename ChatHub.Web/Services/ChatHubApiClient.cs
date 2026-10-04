@@ -220,6 +220,43 @@ public class ChatHubApiClient
             ?? new List<MessageDto>();
     }
 
+    public async Task<List<MessageDto>> SearchMessagesAsync(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return new List<MessageDto>();
+
+        var parameters = new List<string>
+    {
+        $"query={Uri.EscapeDataString(query)}"
+    };
+
+        if (channelId.HasValue)
+            parameters.Add($"channelId={channelId.Value}");
+
+        if (conversationId.HasValue)
+            parameters.Add($"conversationId={conversationId.Value}");
+
+        if (take > 0)
+            parameters.Add($"take={take}");
+
+        var url =
+            $"api/user/messages/search?{string.Join("&", parameters)}";
+
+        var response =
+            await _httpClient.GetAsync(url);
+
+        if (!response.IsSuccessStatusCode)
+            return new List<MessageDto>();
+
+        return await response.Content
+            .ReadFromJsonAsync<List<MessageDto>>()
+            ?? new List<MessageDto>();
+    }
+
     public async Task<MessageDto?> SendDirectMessageAsync(
      int conversationId,
      string content,

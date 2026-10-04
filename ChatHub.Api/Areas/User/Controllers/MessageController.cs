@@ -201,6 +201,88 @@ public class MessageController : ControllerBase
     }
 
     /* =========================================================
+    Search Messages
+    ========================================================= */
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string query,
+        [FromQuery] int? channelId = null,
+        [FromQuery] int? conversationId = null,
+        [FromQuery] int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Search query is required.");
+
+        if (channelId.HasValue && channelId.Value <= 0)
+            return BadRequest("Invalid channel id.");
+
+        if (conversationId.HasValue && conversationId.Value <= 0)
+            return BadRequest("Invalid conversation id.");
+
+        // Exactly one target must be specified.
+        if (!channelId.HasValue && !conversationId.HasValue)
+            return BadRequest(
+                "Specify a channelId or conversationId.");
+
+        if (channelId.HasValue && conversationId.HasValue)
+            return BadRequest(
+                "Specify either channelId or conversationId, not both.");
+
+        if (take <= 0)
+            take = 50;
+
+        if (take > 100)
+            take = 100;
+
+        var userId = GetCurrentUserId();
+
+        if (userId is null)
+            return Unauthorized();
+
+        /* -----------------------------------------------------
+           Channel Search
+           ----------------------------------------------------- */
+
+        if (channelId.HasValue)
+        {
+            var isMember =
+                await _membershipRepository
+                    .IsMemberOfChannelAsync(
+                        channelId.Value,
+                        userId.Value);
+
+            if (!isMember)
+                return Forbid();
+        }
+
+        /* -----------------------------------------------------
+           Conversation Search
+           ----------------------------------------------------- */
+
+        if (conversationId.HasValue)
+        {
+            var isMember =
+                await _conversationRepository
+                    .IsMemberAsync(
+                        conversationId.Value,
+                        userId.Value);
+
+            if (!isMember)
+                return NotFound();
+        }
+
+        var messages =
+            await _messageService.SearchAsync(
+                query,
+                channelId,
+                conversationId,
+                take);
+
+        return Ok(messages);
+    }
+
+    /* =========================================================
        Send Channel Message
        ========================================================= */
 

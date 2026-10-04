@@ -28,4 +28,10 @@ public interface IMessageService
     Task<MessageDto> SendToConversationAsync(
     SendDirectMessageDto request,
     int senderId);
+
+    Task<List<MessageDto>> SearchAsync(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50);
 }

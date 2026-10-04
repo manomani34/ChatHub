@@ -15,6 +15,26 @@ public class MessageService : IMessageService
         _repository = repository;
     }
 
+    public async Task<List<MessageDto>> SearchAsync(
+    string query,
+    int? channelId = null,
+    int? conversationId = null,
+    int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return new List<MessageDto>();
+
+        var messages = await _repository.SearchAsync(
+            query,
+            channelId,
+            conversationId,
+            take);
+
+        return messages
+            .Select(MapToDto)
+            .ToList();
+    }
+
     public async Task<MessageDto> SendToConversationAsync(
     SendDirectMessageDto request,
     int senderId)

@@ -131,8 +131,9 @@ public class MessageController : ControllerBase
        ========================================================= */
 
     [HttpGet("channel/{channelId:int}")]
-    public async Task<IActionResult> GetByChannel(
-        int channelId)
+    public async Task<IActionResult> GetByChannel(int channelId,
+                                                  [FromQuery] int? beforeMessageId = null,
+                                                  [FromQuery] int take = 50)
     {
         if (channelId <= 0)
         {
@@ -160,9 +161,10 @@ public class MessageController : ControllerBase
         }
 
         var messages =
-            await _messageService
-                .GetByChannelIdAsync(
-                    channelId);
+     await _messageService
+         .GetByChannelIdAsync(channelId,
+                              beforeMessageId,
+                              take);
 
         return Ok(messages);
     }
@@ -173,7 +175,9 @@ public class MessageController : ControllerBase
 
     [HttpGet("conversation/{conversationId:int}")]
     public async Task<IActionResult> GetConversationMessages(
-        int conversationId)
+    int conversationId,
+    [FromQuery] int? beforeMessageId = null,
+    [FromQuery] int take = 50)
     {
         if (conversationId <= 0)
             return BadRequest();
@@ -193,9 +197,10 @@ public class MessageController : ControllerBase
             return NotFound();
 
         var messages =
-            await _messageService
-                .GetByConversationIdAsync(
-                    conversationId);
+     await _messageService
+         .GetByConversationIdAsync(conversationId,
+                                   beforeMessageId,
+                                   take);
 
         return Ok(messages);
     }

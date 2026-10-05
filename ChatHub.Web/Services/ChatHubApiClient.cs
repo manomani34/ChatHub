@@ -66,13 +66,60 @@ public class ChatHubApiClient
         return result ?? new List<ChannelDto>();
     }
 
-    public async Task<List<MessageDto>> GetMessagesAsync(int channelId)
+    public async Task<List<MessageDto>> GetMessagesAsync(
+    int channelId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
+        var url =
+            $"api/user/messages/channel/{channelId}?take={take}";
+
+        if (beforeMessageId.HasValue)
+            url += $"&beforeMessageId={beforeMessageId.Value}";
+
         var result = await _httpClient
-            .GetFromJsonAsync<List<MessageDto>>(
-                $"api/user/messages/channel/{channelId}");
+            .GetFromJsonAsync<List<MessageDto>>(url);
 
         return result ?? new List<MessageDto>();
+    }
+
+    public async Task<int> GetConversationUnreadCountAsync(
+    int conversationId)
+    {
+        if (conversationId <= 0)
+            return 0;
+
+        var result =
+            await _httpClient.GetFromJsonAsync<UnreadCountResponse>(
+                $"api/user/conversations/{conversationId}/unread-count");
+
+        return result?.UnreadCount ?? 0;
+    }
+
+    private class UnreadCountResponse
+    {
+        public int ConversationId { get; set; }
+        public int UnreadCount { get; set; }
+    }
+
+    public async Task<bool> MarkConversationAsReadAsync(
+    int conversationId,
+    int? lastReadMessageId)
+    {
+        if (conversationId <= 0)
+            return false;
+
+        var request = new
+        {
+            LastReadMessageId = lastReadMessageId
+        };
+
+        var response =
+            await _httpClient.PostAsJsonAsync(
+                $"api/user/conversations/{conversationId}/mark-read",
+                request);
+
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<MessageDto?> SendMessageAsync(
@@ -203,14 +250,21 @@ public class ChatHubApiClient
 
 
     public async Task<List<MessageDto>> GetConversationMessagesAsync(
-        int conversationId)
+    int conversationId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
         if (conversationId <= 0)
             return new List<MessageDto>();
 
+        var url =
+            $"api/user/messages/conversation/{conversationId}?take={take}";
+
+        if (beforeMessageId.HasValue)
+            url += $"&beforeMessageId={beforeMessageId.Value}";
+
         var response =
-            await _httpClient.GetAsync(
-                $"api/user/messages/conversation/{conversationId}");
+            await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
             return new List<MessageDto>();

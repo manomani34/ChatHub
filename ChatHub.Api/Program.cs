@@ -145,6 +145,14 @@ builder.Services.AddScoped<
     IMessageReactionService,
     MessageReactionService>();
 
+builder.Services.AddScoped<
+    IConversationReadStateService,
+    ConversationReadStateService>();
+
+builder.Services.AddScoped<
+    IConversationReadStateRepository,
+    ConversationReadStateRepository>();
+
 
 /* =========================================================
    Password Hashing

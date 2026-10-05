@@ -819,3 +819,338 @@ document.addEventListener(
 
     }
 );
+
+// =====================================================
+// Message Pagination
+// =====================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const chatMessages =
+            document.getElementById(
+                "chatMessages"
+            );
+
+        if (!chatMessages) {
+            return;
+        }
+
+
+        let isLoadingOlderMessages = false;
+
+        let hasMoreOlderMessages = true;
+
+
+        // =================================================
+        // Load Older Messages
+        // =================================================
+
+        async function loadOlderMessages() {
+
+            if (
+                isLoadingOlderMessages ||
+                !hasMoreOlderMessages
+            ) {
+                return;
+            }
+
+
+            const firstMessage =
+                chatMessages.querySelector(
+                    ".message"
+                );
+
+
+            if (!firstMessage) {
+                return;
+            }
+
+
+            const beforeMessageId =
+                firstMessage.dataset.messageId;
+
+
+            if (!beforeMessageId) {
+                return;
+            }
+
+
+            const channelId =
+                chatMessages.dataset.channelId;
+
+
+            const conversationId =
+                chatMessages.dataset.conversationId;
+
+
+            if (
+                !channelId &&
+                !conversationId
+            ) {
+                return;
+            }
+
+
+            isLoadingOlderMessages = true;
+
+
+            // وضعیت فعلی اسکرول را نگه می‌داریم
+
+            const oldScrollHeight =
+                chatMessages.scrollHeight;
+
+            const oldScrollTop =
+                chatMessages.scrollTop;
+
+
+            try {
+
+                const params =
+                    new URLSearchParams();
+
+
+                params.set(
+                    "beforeMessageId",
+                    beforeMessageId
+                );
+
+
+                params.set(
+                    "take",
+                    "50"
+                );
+
+
+                if (channelId) {
+
+                    params.set(
+                        "channelId",
+                        channelId
+                    );
+                }
+
+
+                if (conversationId) {
+
+                    params.set(
+                        "conversationId",
+                        conversationId
+                    );
+                }
+
+
+                const response =
+                    await fetch(
+                        `/User/Home/LoadOlderMessages?${params.toString()}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `Load older messages failed: ${response.status}`
+                    );
+                }
+
+
+                const messages =
+                    await response.json();
+
+
+                if (
+                    !Array.isArray(messages) ||
+                    messages.length === 0
+                ) {
+
+                    hasMoreOlderMessages =
+                        false;
+
+                    return;
+                }
+
+
+                // =================================================
+                // اضافه کردن پیام‌ها به ابتدای لیست
+                // =================================================
+
+                messages.forEach(
+                    function (message) {
+
+                        const element =
+                            createMessageElement(
+                                message
+                            );
+
+
+                        if (!element) {
+                            return;
+                        }
+
+
+                        chatMessages.insertBefore(
+                            element,
+                            chatMessages.firstChild
+                        );
+
+
+                        // Reply Reference
+
+                        if (
+                            typeof addReplyReference ===
+                            "function"
+                        ) {
+
+                            addReplyReference(
+                                element
+                            );
+                        }
+
+                    }
+                );
+
+
+                // =================================================
+                // حفظ موقعیت اسکرول
+                // =================================================
+
+                const newScrollHeight =
+                    chatMessages.scrollHeight;
+
+
+                chatMessages.scrollTop =
+                    oldScrollTop +
+                    (
+                        newScrollHeight -
+                        oldScrollHeight
+                    );
+
+
+                // اگر کمتر از 50 پیام آمد،
+                // احتمالاً دیگر پیام قدیمی‌تری نداریم.
+
+                if (messages.length < 50) {
+
+                    hasMoreOlderMessages =
+                        false;
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Load older messages error:",
+                    error
+                );
+
+            }
+            finally {
+
+                isLoadingOlderMessages =
+                    false;
+            }
+        }
+
+
+        // =================================================
+        // Detect Top Scroll
+        // =================================================
+
+        chatMessages.addEventListener(
+            "scroll",
+            function () {
+
+                if (
+                    chatMessages.scrollTop <= 50
+                ) {
+
+                    loadOlderMessages();
+                }
+
+            }
+        );
+
+    }
+);
+
+// =====================================================
+// Conversation Read State
+// =====================================================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const chatMessages =
+        document.getElementById("chatMessages");
+
+    if (!chatMessages) {
+        return;
+    }
+
+    const conversationId =
+        Number(chatMessages.dataset.conversationId);
+
+    const isDirect =
+        chatMessages.dataset.isDirect === "true";
+
+    // فقط برای Conversationهای مستقیم
+    if (!isDirect || conversationId <= 0) {
+        return;
+    }
+
+    const messages =
+        chatMessages.querySelectorAll(".message");
+
+    if (!messages.length) {
+        return;
+    }
+
+    const lastMessage =
+        messages[messages.length - 1];
+
+    const lastReadMessageId =
+        Number(lastMessage.dataset.messageId);
+
+    if (lastReadMessageId <= 0) {
+        return;
+    }
+
+    fetch("/User/Home/MarkConversationAsRead", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            conversationId: conversationId,
+            lastReadMessageId: lastReadMessageId
+        })
+    })
+        .then(response => {
+
+            if (!response.ok) {
+                console.error(
+                    "Failed to mark conversation as read."
+                );
+                return;
+            }
+
+            console.log(
+                `Conversation ${conversationId} marked as read. ` +
+                `Last message: ${lastReadMessageId}`
+            );
+        })
+        .catch(error => {
+            console.error(
+                "Mark conversation as read error:",
+                error
+            );
+        });
+
+});

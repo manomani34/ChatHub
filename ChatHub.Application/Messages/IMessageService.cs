@@ -3,10 +3,7 @@
 namespace ChatHub.Application.Messages;
 
 public interface IMessageService
-{
-    Task<List<MessageDto>> GetByChannelIdAsync(
-        int channelId);
-
+{   
     Task<MessageDto?> GetByIdAsync(
         int messageId);
 
@@ -22,9 +19,6 @@ public interface IMessageService
         int messageId,
         int userId);
 
-    Task<List<MessageDto>> GetByConversationIdAsync(
-    int conversationId);
-
     Task<MessageDto> SendToConversationAsync(
     SendDirectMessageDto request,
     int senderId);
@@ -34,4 +28,14 @@ public interface IMessageService
     int? channelId = null,
     int? conversationId = null,
     int take = 50);
+
+    Task<List<MessageDto>> GetByChannelIdAsync(
+    int channelId,
+    int? beforeMessageId = null,
+    int take = 50);
+
+    Task<List<MessageDto>> GetByConversationIdAsync(
+        int conversationId,
+        int? beforeMessageId = null,
+        int take = 50);
 }

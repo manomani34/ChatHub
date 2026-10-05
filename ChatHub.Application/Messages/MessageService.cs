@@ -104,14 +104,18 @@ public class MessageService : IMessageService
         return MapToDto(createdMessage);
     }
     public async Task<List<MessageDto>> GetByConversationIdAsync(
-    int conversationId)
+    int conversationId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
         if (conversationId <= 0)
             return new List<MessageDto>();
 
         var messages =
             await _repository.GetByConversationIdAsync(
-                conversationId);
+                conversationId,
+                beforeMessageId,
+                take);
 
         return messages
             .Select(MapToDto)
@@ -148,16 +152,18 @@ public class MessageService : IMessageService
        ========================================================= */
 
     public async Task<List<MessageDto>> GetByChannelIdAsync(
-        int channelId)
+    int channelId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
         if (channelId <= 0)
-        {
             return new List<MessageDto>();
-        }
 
         var messages =
             await _repository.GetByChannelIdAsync(
-                channelId);
+                channelId,
+                beforeMessageId,
+                take);
 
         return messages
             .Select(MapToDto)

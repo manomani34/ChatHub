@@ -73,27 +73,87 @@ public class MessageRepository : IMessageRepository
     }
 
     public async Task<List<Message>> GetByConversationIdAsync(
-    int conversationId)
+    int conversationId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
         if (conversationId <= 0)
             return new List<Message>();
 
-        return await _db.Messages
+        if (take <= 0)
+            take = 50;
+
+        if (take > 100)
+            take = 100;
+
+        var query = _db.Messages
+            .AsNoTracking()
             .Include(x => x.Sender)
             .Where(x =>
                 x.ConversationId == conversationId &&
-                !x.IsDeleted)
+                !x.IsDeleted);
+
+        if (beforeMessageId.HasValue)
+        {
+            var beforeMessage = await _db.Messages
+                .AsNoTracking()
+                .Where(x => x.Id == beforeMessageId.Value)
+                .Select(x => new { x.CreatedAt })
+                .FirstOrDefaultAsync();
+
+            if (beforeMessage is not null)
+            {
+                query = query.Where(x =>
+                    x.CreatedAt < beforeMessage.CreatedAt);
+            }
+        }
+
+        return await query
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(take)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync();
     }
-    public async Task<List<Message>> GetByChannelIdAsync(int channelId)
+
+    public async Task<List<Message>> GetByChannelIdAsync(
+    int channelId,
+    int? beforeMessageId = null,
+    int take = 50)
     {
-        return await _db.Messages
+        if (channelId <= 0)
+            return new List<Message>();
+
+        if (take <= 0)
+            take = 50;
+
+        if (take > 100)
+            take = 100;
+
+        var query = _db.Messages
             .AsNoTracking()
             .Include(x => x.Sender)
             .Where(x =>
                 x.ChannelId == channelId &&
-                !x.IsDeleted)
+                !x.IsDeleted);
+
+        if (beforeMessageId.HasValue)
+        {
+            var beforeMessage = await _db.Messages
+                .AsNoTracking()
+                .Where(x => x.Id == beforeMessageId.Value)
+                .Select(x => new { x.CreatedAt })
+                .FirstOrDefaultAsync();
+
+            if (beforeMessage is not null)
+            {
+                query = query.Where(x =>
+                    x.CreatedAt < beforeMessage.CreatedAt);
+            }
+        }
+
+        return await query
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(take)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync();
     }

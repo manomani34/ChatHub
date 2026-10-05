@@ -40,7 +40,14 @@ public class HomeController : Controller
                 workspace.Id);
 
         var directConversations =
-    await _apiClient.GetDirectConversationsAsync();                
+    await _apiClient.GetDirectConversationsAsync();
+
+        foreach (var conversation in directConversations)
+        {
+            conversation.UnreadCount =
+                await _apiClient.GetConversationUnreadCountAsync(
+                    conversation.ConversationId);
+        }
 
         if (int.TryParse(currentUserId, out var parsedUserId))
         {
@@ -266,6 +273,79 @@ public class HomeController : Controller
 
         return Ok(message);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> MarkConversationAsRead(
+    [FromBody] MarkConversationAsReadRequest request)
+    {
+        if (request.ConversationId <= 0)
+            return BadRequest();
+
+        await _apiClient.MarkConversationAsReadAsync(
+            request.ConversationId,
+            request.LastReadMessageId);
+
+        return Ok();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> LoadOlderMessages(
+    int? channelId,
+    int? conversationId,
+    int beforeMessageId,
+    int take = 50)
+    {
+        if (beforeMessageId <= 0)
+            return BadRequest();
+
+        if (take <= 0)
+            take = 50;
+
+        if (take > 100)
+            take = 100;
+
+        if (conversationId.HasValue && conversationId.Value > 0)
+        {
+            var messages =
+                await _apiClient.GetConversationMessagesAsync(
+                    conversationId.Value,
+                    beforeMessageId,
+                    take);
+
+            return Ok(messages);
+        }
+
+        if (channelId.HasValue && channelId.Value > 0)
+        {
+            var messages =
+                await _apiClient.GetMessagesAsync(
+                    channelId.Value,
+                    beforeMessageId,
+                    take);
+
+            return Ok(messages);
+        }
+
+        return BadRequest();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetConversationUnreadCount(
+    int conversationId)
+    {
+        if (conversationId <= 0)
+            return BadRequest();
+
+        var count =
+            await _apiClient.GetConversationUnreadCountAsync(
+                conversationId);
+
+        return Ok(new
+        {
+            conversationId,
+            unreadCount = count
+        });
+    }
 }
 
 public class ChatHubHomeViewModel
@@ -288,4 +368,10 @@ public class ChatHubHomeViewModel
     public WorkspaceMemberDto? DirectMessageUser { get; set; }
     public List<DirectConversationResponse> DirectConversations { get; set; }
     = new();
+}
+
+public class MarkConversationAsReadRequest
+{
+    public int ConversationId { get; set; }
+    public int? LastReadMessageId { get; set; }
 }
